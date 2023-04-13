@@ -19,6 +19,7 @@ typedef struct VolumeInfo {
 
 void GetVolumeInfo(VolInfo* volume_info, char* cwd);
 void PrintDirData(char* file_name, struct stat *stat_data);
+void PrintVolumeInfo(VolInfo* volume_info, char* cwd);
 
 
 
@@ -37,8 +38,7 @@ int main(int argc, char *argv[])
     VolInfo volume_info;
 
     GetVolumeInfo(&volume_info, cwd);
-    
-    printf("%s\n%s\n", volume_info.volume_name, volume_info.volume_serial);
+    PrintVolumeInfo(&volume_info, cwd);
 
     file_dir = opendir(cwd);
 
@@ -75,9 +75,11 @@ void PrintDirData(char* file_name, struct stat *stat_data)
 
     printf("%d-%d-%d\t", t->tm_year+1900, t->tm_mon+1, t->tm_mday);
     if(t->tm_hour >= 12)
-        printf("오후 %d:%d\t", t->tm_hour-12, t->tm_min);
+        printf("오후 %02d:%02d\t", t->tm_hour-12, t->tm_min);
+    else if(t->tm_hour == 12)
+        printf("오후 %02d:%02d\t", 12, t->tm_min);
     else
-        printf("오전 %d:%d\t", t->tm_hour, t->tm_min);
+        printf("오전 %02d:%02d\t", t->tm_hour, t->tm_min);
     printf("%s\n", file_name);
 }
 
@@ -100,4 +102,17 @@ void GetVolumeInfo(VolInfo* volume_info, char* cwd) {
         sizeof(fs_name));
 
     sprintf(volume_info->volume_serial, "%08X", vol_serial);
+}
+
+void PrintVolumeInfo(VolInfo* volume_info, char* cwd) {
+    if(volume_info->volume_name == NULL)
+        printf(" %c 드라이브의 볼륨에는 이름이 없습니다.\n", cwd[0]);
+    else
+        printf(" %c 드라이브의 볼륨: %s\n", cwd[0], volume_info->volume_name);
+    
+    printf(" 볼륨 일련 번호: %c%c%c%c-%c%c%c%c\n\n", 
+    volume_info->volume_serial[0], volume_info->volume_serial[1], volume_info->volume_serial[2], volume_info->volume_serial[3],
+    volume_info->volume_serial[4], volume_info->volume_serial[5], volume_info->volume_serial[6], volume_info->volume_serial[7]);
+
+    printf(" %s 디렉터리\n\n", cwd);
 }
