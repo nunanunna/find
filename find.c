@@ -71,15 +71,24 @@ int main(int argc, char *argv[])
 
 void PrintDirData(char* file_name, struct stat *stat_data)
 {
+    // 날짜/시간 출력
     struct tm* t = localtime(&stat_data->st_atime);
+    
 
-    printf("%d-%d-%d\t", t->tm_year+1900, t->tm_mon+1, t->tm_mday);
+    printf("%d-%02d-%02d\t", t->tm_year+1900, t->tm_mon+1, t->tm_mday);
     if(t->tm_hour >= 12)
         printf("오후 %02d:%02d\t", t->tm_hour-12, t->tm_min);
     else if(t->tm_hour == 12)
         printf("오후 %02d:%02d\t", 12, t->tm_min);
     else
         printf("오전 %02d:%02d\t", t->tm_hour, t->tm_min);
+    
+    // 디렉터리 여부 출력
+    if(S_ISDIR(stat_data->st_mode))
+        printf("<DIR>\t\t");
+    else
+        printf("\t%,d\t", stat_data->st_size);
+
     printf("%s\n", file_name);
 }
 
