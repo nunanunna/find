@@ -6,6 +6,7 @@
 #include <time.h>
 #include <dirent.h>
 #include <windows.h>
+#include <stdbool.h>
 #include <locale.h>
 
 enum{
@@ -54,7 +55,11 @@ int main(int argc, char *argv[])
         strcat(cwd, backslash);
         strcat(cwd, file_name);
         stat(cwd, &file_status);
-        PrintDirData(file_name, &file_status);
+
+        if (access(cwd, F_OK) == 0)
+            PrintDirData(file_name, &file_status);
+        else
+            printf("파일을 찾을 수 없습니다.\n");
         return 0;
     }
     
@@ -91,10 +96,10 @@ void PrintDirData(char* file_name, struct stat *stat_data)
     
 
     printf("%d-%02d-%02d  ", t->tm_year+1900, t->tm_mon+1, t->tm_mday);
-    if(t->tm_hour >= 12)
-        printf("오후 %02d:%02d    ", t->tm_hour-12, t->tm_min);
-    else if(t->tm_hour == 12)
+    if(t->tm_hour == 12)
         printf("오후 %02d:%02d    ", 12, t->tm_min);
+    else if(t->tm_hour > 12)
+        printf("오후 %02d:%02d    ", t->tm_hour-12, t->tm_min);
     else
         printf("오전 %02d:%02d    ", t->tm_hour, t->tm_min);
     
@@ -146,4 +151,8 @@ unsigned long long int GetVolumeSize(char* cwd) {
     GetDiskFreeSpaceEx("C:\\", NULL, &total, &free);// C드라이브의 정보를 얻음
 
     return free.QuadPart;
+}
+
+bool IsPath(char* input) {
+
 }
