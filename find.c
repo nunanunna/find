@@ -52,8 +52,16 @@ int main(int argc, char *argv[])
 
     if (argc != 1) {
         strcpy(file_name, argv[1]);
-        strcat(cwd, backslash);
-        strcat(cwd, file_name);
+
+        if(*(argv[1]+1) == ':' && *(argv[1]+2) == '\\'){
+            strcpy(cwd, argv[1]);
+        }
+        
+        else {
+            strcat(cwd, backslash);
+            strcat(cwd, file_name);
+        }
+
         stat(cwd, &file_status);
 
         if (access(cwd, F_OK) == 0)
