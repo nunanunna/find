@@ -30,32 +30,29 @@ void PrintDirData(char* file_name, struct stat *stat_data);
 void PrintVolumeInfo(VolInfo* volume_info, char* cwd);
 unsigned long long int GetVolumeSize(char* cwd);
 int wildcard_match(char *wildcard_str, char *filename_str);
+void PrintDirItems(DIR* file_dir, char* cwd, struct stat* file_status, DirInfo* dir_info);
 
 int main(int argc, char *argv[])
 {
     setlocale(LC_NUMERIC, "");
 
     char *cwd = (char *)malloc(sizeof(char) * MAX_DIRECTORY_LENGTH);
-    char *file_name = (char *)malloc(sizeof(char) * MAX_DIRECTORY_LENGTH);;
+    char *file_name = (char *)malloc(sizeof(char) * MAX_DIRECTORY_LENGTH);
     getcwd(cwd, MAX_DIRECTORY_LENGTH);
 
     char backslash[] = "\\";
 
     struct stat file_status;
     DIR *file_dir = NULL;
-    struct dirent *file = NULL;
+    DirInfo dir_info = {0, };
 
     VolInfo volume_info;
-
-    int dir_count = 0;
-    int file_count = 0;
-    long total_file_size = 0;
 
     GetVolumeInfo(&volume_info, cwd);
     PrintVolumeInfo(&volume_info, cwd);
 
     file_dir = opendir(cwd);
-    
+
     if (argc != 1) {
         strcpy(file_name, argv[1]);
 
@@ -77,24 +74,10 @@ int main(int argc, char *argv[])
         return 0;
     }
 
-    while ((file = readdir(file_dir)) != NULL)
-    {
-        strcat(cwd, backslash);
-        strcat(cwd, file->d_name);
-        stat(cwd, &file_status);
-        PrintDirData(file->d_name, &file_status);
-        getcwd(cwd, MAX_DIRECTORY_LENGTH);
+    PrintDirItems(file_dir, cwd, &file_status, &dir_info);
 
-        if(S_ISDIR(file_status.st_mode))
-            dir_count++;
-        if(S_ISREG(file_status.st_mode))
-            file_count++;
-
-        total_file_size += file_status.st_size;
-    }
-
-    printf("%'16d개 파일%'20d 바이트\n", file_count, total_file_size);
-    printf("%'16d개 디렉터리%'17llu 바이트 남음\n", dir_count, GetVolumeSize(cwd));
+    printf("%'16d개 파일%'20d 바이트\n", dir_info.file_count, dir_info.total_file_size);
+    printf("%'16d개 디렉터리%'17llu 바이트 남음\n", dir_info.dir_count, GetVolumeSize(cwd));
 
     free(cwd);
     free(file_name);
@@ -103,12 +86,32 @@ int main(int argc, char *argv[])
     return 0;
 }
 
+void PrintDirItems(DIR* file_dir, char* cwd, struct stat* file_status, DirInfo* dir_info) {
+    struct dirent *file = NULL;
+
+    while ((file = readdir(file_dir)) != NULL)
+    {
+        strcat(cwd, "\\");
+        strcat(cwd, file->d_name);
+        stat(cwd, file_status);
+        PrintDirData(file->d_name, file_status);
+        getcwd(cwd, MAX_DIRECTORY_LENGTH);
+
+        if(S_ISDIR(file_status->st_mode))
+            dir_info->dir_count++;
+        if(S_ISREG(file_status->st_mode))
+            dir_info->file_count++;
+
+        dir_info->total_file_size += file_status->st_size;
+    }
+}
+
 void PrintDirData(char* file_name, struct stat *stat_data)
 {
     // 날짜/시간 출력
     struct tm* t = localtime(&stat_data->st_atime);
     
-
+    
     printf("%d-%02d-%02d  ", t->tm_year+1900, t->tm_mon+1, t->tm_mday);
     if(t->tm_hour == 12)
         printf("오후 %02d:%02d    ", 12, t->tm_min);
@@ -124,7 +127,7 @@ void PrintDirData(char* file_name, struct stat *stat_data)
         printf("%'14d ", stat_data->st_size);
 
     printf("%s\n", file_name);
-}
+}   
 
 void GetVolumeInfo(VolInfo* volume_info, char* cwd) {
     
