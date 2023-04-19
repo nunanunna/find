@@ -19,11 +19,17 @@ typedef struct VolumeInfo {
     char volume_serial[MAX_SERIAL_NUM_LENGTH];
 } VolInfo;
 
+typedef struct DirectoryInfo {
+    char file_count;
+    char dir_count;
+    long total_file_size;
+} DirInfo;
+
 void GetVolumeInfo(VolInfo* volume_info, char* cwd);
 void PrintDirData(char* file_name, struct stat *stat_data);
 void PrintVolumeInfo(VolInfo* volume_info, char* cwd);
 unsigned long long int GetVolumeSize(char* cwd);
-
+int wildcard_match(char *wildcard_str, char *filename_str);
 
 int main(int argc, char *argv[])
 {
@@ -49,7 +55,7 @@ int main(int argc, char *argv[])
     PrintVolumeInfo(&volume_info, cwd);
 
     file_dir = opendir(cwd);
-
+    
     if (argc != 1) {
         strcpy(file_name, argv[1]);
 
@@ -70,7 +76,7 @@ int main(int argc, char *argv[])
             printf("파일을 찾을 수 없습니다.\n");
         return 0;
     }
-    
+
     while ((file = readdir(file_dir)) != NULL)
     {
         strcat(cwd, backslash);
@@ -163,4 +169,35 @@ unsigned long long int GetVolumeSize(char* cwd) {
 
 bool IsPath(char* input) {
 
+}
+
+int wildcard_match(char *wildcard_str, char *filename_str) {
+    int i = 0;
+    int j = 0;
+    int wildcard_pos = -1;
+    int filename_pos = -1;
+    int wildcard_len = strlen(wildcard_str);
+    int filename_len = strlen(filename_str);
+
+    while (i < filename_len) {
+        if (j < wildcard_len && (wildcard_str[j] == '?' || wildcard_str[j] == filename_str[i])) {
+            i++;
+            j++;
+        } else if (j < wildcard_len && wildcard_str[j] == '*') {
+            wildcard_pos = j;
+            filename_pos = i;
+            j++;
+        } else if (wildcard_pos != -1) {
+            j = wildcard_pos + 1;
+            i = ++filename_pos;
+        } else {
+            return 0;
+        }
+    }
+
+    while (j < wildcard_len && wildcard_str[j] == '*') {
+        j++;
+    }
+
+    return j == wildcard_len ? 1 : 0;
 }
