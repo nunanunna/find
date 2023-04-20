@@ -29,7 +29,7 @@ void GetVolumeInfo(VolInfo* volume_info, char* cwd);
 void PrintDirData(char* file_name, struct stat *stat_data);
 void PrintVolumeInfo(VolInfo* volume_info, char* cwd);
 unsigned long long int GetVolumeSize(char* cwd);
-int wildcard_match(char *wildcard_str, char *filename_str);
+bool WildMatch(char *wildcard_str, char *filename_str);
 void PrintDirItems(DIR* file_dir, char* cwd, struct stat* file_status, DirInfo* dir_info);
 
 int main(int argc, char *argv[])
@@ -55,6 +55,7 @@ int main(int argc, char *argv[])
 
     if (argc != 1) {
         strcpy(file_name, argv[1]);
+        
 
         if(*(argv[1]+1) == ':' && *(argv[1]+2) == '\\'){
             strcpy(cwd, argv[1]);
@@ -64,6 +65,9 @@ int main(int argc, char *argv[])
             strcat(cwd, backslash);
             strcat(cwd, file_name);
         }
+        int i = 0;
+
+        while(cwd[i] != )
 
         stat(cwd, &file_status);
 
@@ -174,7 +178,7 @@ bool IsPath(char* input) {
 
 }
 
-int wildcard_match(char *wildcard_str, char *filename_str) {
+bool WildMatch(char *wildcard_str, char *filename_str) {
     int i = 0;
     int j = 0;
     int wildcard_pos = -1;
@@ -202,5 +206,5 @@ int wildcard_match(char *wildcard_str, char *filename_str) {
         j++;
     }
 
-    return j == wildcard_len ? 1 : 0;
+    return j == wildcard_len ? true : false;
 }
